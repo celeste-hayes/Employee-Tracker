@@ -63,3 +63,55 @@ const viewEmployees = async () => {
     console.table(res.rows);
     await mainMenu();
 };
+
+// Add a new department
+const addDepartment = async () => {
+    const { name } = await inquirer.prompt({
+        type: 'input',
+        name: 'name',
+        message: 'Enter the department name:'
+    });
+    await query('INSERT INTO department (name) VALUES ($1)', [name]);
+    console.log('Department added!');
+    await mainMenu();
+};
+
+// Add a new role
+const addRole = async () => {
+    const departments = await getDepartments();
+    const { title, salary } = await inquirer.prompt([
+        { type: 'input', name: 'title', message: 'Enter the role title:' },
+        { type: 'input', name: 'salary', message: 'Enter the role salary:' }
+    ]);
+    const department_id = await promptWithChoices('Select the department:', departments.rows.map(dept => ({
+        name: dept.name,
+        value: dept.id
+    })));
+    await query('INSERT INTO role (title, salary, department_id) VALUES ($1, $2, $3)', [title, salary, department_id]);
+    console.log('Role added!');
+    await mainMenu();
+};
+
+// Add a new employee
+const addEmployee = async () => {
+    const roles = await getRoles();
+    const employees = await getEmployees();
+    const { first_name, last_name } = await inquirer.prompt([
+        { type: 'input', name: 'first_name', message: 'Enter the employee\'s first name:' },
+        { type: 'input', name: 'last_name', message: 'Enter the employee\'s last name:' }
+    ]);
+    const role_id = await promptWithChoices('Select the employee\'s role:', roles.rows.map(role => ({
+        name: role.title,
+        value: role.id
+    })));
+    const manager_id = await promptWithChoices('Select the employee\'s manager (or leave blank if none):', [
+        ...employees.rows.map(emp => ({
+            name: `${emp.first_name} ${emp.last_name}`,
+            value: emp.id
+        })),
+        { name: 'None', value: null }
+    ]);
+    await query('INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)', [first_name, last_name, role_id, manager_id]);
+    console.log('Employee added!');
+    await mainMenu();
+};
