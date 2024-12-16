@@ -1,6 +1,6 @@
 // Import modules
 import inquirer from 'inquirer';
-import { pool } from './connections.js';
+import { pool } from './connection.js';
 
 // Helper function for running parameterized SQL queries
 function query(sql, params) {
