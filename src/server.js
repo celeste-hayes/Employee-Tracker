@@ -115,3 +115,48 @@ const addEmployee = async () => {
     console.log('Employee added!');
     await mainMenu();
 };
+// Update an employee's role
+const updateEmployeeRole = async () => {
+    const employees = await getEmployees();
+    const roles = await getRoles();
+    const employee_id = await promptWithChoices('Select the employee to update:', employees.rows.map(emp => ({
+        name: `${emp.first_name} ${emp.last_name}`,
+        value: emp.id
+    })));
+    const role_id = await promptWithChoices('Select the new role:', roles.rows.map(role => ({
+        name: role.title,
+        value: role.id
+    })));
+    await query('UPDATE employees SET role_id = $1 WHERE id = $2', [role_id, employee_id]);
+    console.log('Employee role updated!');
+    await mainMenu();
+};
+
+// Define main menu options with corresponding actions
+const mainMenuOptions = {
+    'View all departments': viewDepartments,
+    'View all roles': viewRoles,
+    'View all employees': viewEmployees,
+    'Add a department': addDepartment,
+    'Add a role': addRole,
+    'Add an employee': addEmployee,
+    'Update an employee role': updateEmployeeRole,
+    'Exit': () => {
+        console.log('Bye!');
+        process.exit();
+    }
+};
+
+// Main menu function
+const mainMenu = async () => {
+    const { action } = await inquirer.prompt({
+        type: 'list',
+        name: 'action',
+        message: 'What would you like to do?',
+        choices: Object.keys(mainMenuOptions),
+    });
+    await mainMenuOptions[action]();
+};
+
+// Start the application
+mainMenu();
